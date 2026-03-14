@@ -37,13 +37,31 @@ self.addEventListener('message', async (e) => {
                 const newColumnsSet = new Set();
                 const processedData = new Array(data.length);
 
+                // Handle mapping correctly to avoid duplicate keys dropping columns
+                const uniqueColMapping = {};
+                for (const col of columns) {
+                    let newName = mappedColumns[col] || col;
+
+                    if (newColumnsSet.has(newName)) {
+                        // Conflict: fall back to original name
+                        newName = col;
+                        // If still conflict, add generic suffix
+                        let counter = 1;
+                        while (newColumnsSet.has(newName)) {
+                            newName = `${col}_${counter}`;
+                            counter++;
+                        }
+                    }
+                    newColumnsSet.add(newName);
+                    uniqueColMapping[col] = newName;
+                }
+
                 // Optimized single pass loop
                 for (let i = 0; i < data.length; i++) {
                     const row = data[i];
                     const newRow = {};
                     for (const col of columns) {
-                        const newColName = mappedColumns[col] || col;
-                        newColumnsSet.add(newColName);
+                        const newColName = uniqueColMapping[col];
                         newRow[newColName] = cleanDataCell(row[col]);
                     }
                     processedData[i] = newRow;

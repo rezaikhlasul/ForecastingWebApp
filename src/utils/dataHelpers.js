@@ -41,6 +41,8 @@ export function isDateColumn(values) {
 
     const matchCount = sampleValues.filter(val => {
         const str = String(val).trim();
+        // Skip purely numeric values because Date.parse might incorrectly parse them
+        if (!isNaN(Number(str))) return false;
         return datePatterns.some(pattern => pattern.test(str)) || !isNaN(Date.parse(str));
     }).length;
 

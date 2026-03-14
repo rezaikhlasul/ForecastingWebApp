@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, LayoutDashboard, LineChart, Brain, Table2, ArrowLeft, FileSpreadsheet, Upload } from 'lucide-react';
+import { BarChart3, LayoutDashboard, LineChart, Brain, Table2, ArrowLeft, FileSpreadsheet, Upload, MessageSquare } from 'lucide-react';
 import useDataStore from '../stores/useDataStore';
 import StatsCards from '../components/dashboard/StatsCards';
 import ChartContainer from '../components/dashboard/ChartContainer';
+import ExploreContainer from '../components/dashboard/ExploreContainer';
 import DataTable from '../components/dashboard/DataTable';
 import RecommendationCards from '../components/ai/RecommendationCards';
 import ChatPanel from '../components/ai/ChatPanel';
@@ -20,8 +21,8 @@ export default function DashboardPage() {
     const navigate = useNavigate();
     const {
         rawData, columns, fileName, fileSize,
-        activeTab, setActiveTab, isChatOpen,
-        clearData,
+        activeTab, setActiveTab, isChatOpen, setChatOpen,
+        clearData, chatHistory,
     } = useDataStore();
 
     // Redirect if no data
@@ -100,11 +101,15 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="dashboard-content">
-                    {(activeTab === 'overview' || activeTab === 'explore') && (
+                    {activeTab === 'overview' && (
                         <>
                             <StatsCards />
                             <ChartContainer />
                         </>
+                    )}
+
+                    {activeTab === 'explore' && (
+                        <ExploreContainer />
                     )}
 
                     {activeTab === 'insights' && (
@@ -121,6 +126,13 @@ export default function DashboardPage() {
             <aside className={`dashboard-chat ${isChatOpen ? 'open' : ''}`}>
                 <ChatPanel />
             </aside>
+
+            {!isChatOpen && (
+                <button className="chat-toggle-btn" onClick={() => setChatOpen(true)} title="Munculkan Kembali">
+                    <MessageSquare size={20} />
+                    <span className="chat-toggle-badge">{chatHistory?.length || ''}</span>
+                </button>
+            )}
         </div>
     );
 }

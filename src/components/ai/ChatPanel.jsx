@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, Component } from 'react';
-import { MessageSquare, Send, X, Sparkles, Copy, Check, Trash2 } from 'lucide-react';
+import { MessageSquare, Send, X, Sparkles, Copy, Check, Trash2, PanelRightClose } from 'lucide-react';
 import useDataStore from '../../stores/useDataStore';
 import { chatWithData, isGeminiConfigured } from '../../services/geminiService';
 import './AI.css';
@@ -156,12 +156,7 @@ export default function ChatPanel() {
     };
 
     if (!isChatOpen) {
-        return (
-            <button className="chat-toggle-btn" onClick={() => setChatOpen(true)}>
-                <MessageSquare size={20} />
-                <span className="chat-toggle-badge">{chatHistory.length || ''}</span>
-            </button>
-        );
+        return null;
     }
 
     return (
@@ -178,8 +173,9 @@ export default function ChatPanel() {
                             <Trash2 size={14} />
                         </button>
                     )}
-                    <button className="chat-header-btn" onClick={() => setChatOpen(false)} title="Close">
-                        <X size={16} />
+                    <button className="chat-header-btn" onClick={() => setChatOpen(false)} title="Collapse" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <PanelRightClose size={16} />
+                        <span style={{ fontSize: '0.75rem', fontWeight: '500' }}>Collapse</span>
                     </button>
                 </div>
             </div>

@@ -7,7 +7,7 @@ import './Dashboard.css';
 const ROWS_PER_PAGE = 50;
 
 export default function DataTable() {
-    const { rawData, columns, dataTypes } = useDataStore();
+    const { rawData, columns, dataTypes, updateDataType } = useDataStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [sortCol, setSortCol] = useState(null);
     const [sortDir, setSortDir] = useState('asc');
@@ -105,9 +105,21 @@ export default function DataTable() {
                                     <div className="th-content">
                                         <div className="th-info">
                                             <span className="th-name">{col}</span>
-                                            <span className="th-type" style={{ color: getTypeColor(dataTypes[col]) }}>
-                                                {dataTypes[col]}
-                                            </span>
+                                            <select
+                                                className="th-type-select"
+                                                style={{ color: getTypeColor(dataTypes[col]) }}
+                                                value={dataTypes[col] || 'text'}
+                                                onChange={(e) => {
+                                                    e.stopPropagation();
+                                                    updateDataType(col, e.target.value);
+                                                }}
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <option value="numeric">numeric</option>
+                                                <option value="categorical">categorical</option>
+                                                <option value="datetime">datetime</option>
+                                                <option value="text">text</option>
+                                            </select>
                                         </div>
                                         <span className="sort-icon">
                                             {sortCol === col ? (

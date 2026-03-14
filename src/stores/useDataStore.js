@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { runFullAnalysis } from '../services/dataAnalysis';
+import { generateChartConfigs } from '../services/chartGenerator';
 
 const useDataStore = create((set, get) => ({
   // Data state
@@ -23,6 +25,10 @@ const useDataStore = create((set, get) => ({
   activeTab: 'overview',
   chartConfigs: [],
 
+  // Forecasting state
+  forecastResult: null,
+  isForecasting: false,
+
   // Actions
   setData: (data) => set({
     rawData: data.rawData,
@@ -40,6 +46,25 @@ const useDataStore = create((set, get) => ({
   }),
 
   setChartConfigs: (configs) => set({ chartConfigs: configs }),
+
+  setForecastResult: (result) => set({ forecastResult: result }),
+  setIsForecasting: (loading) => set({ isForecasting: loading }),
+
+  updateDataType: (column, newType) => set((state) => {
+    const newDataTypes = { ...state.dataTypes, [column]: newType };
+
+    // Recalculate stats and charts because the data type changed
+    const analysis = runFullAnalysis(state.rawData, state.columns, newDataTypes);
+    const charts = generateChartConfigs(state.rawData, state.columns, newDataTypes, analysis.statistics);
+
+    return {
+      dataTypes: newDataTypes,
+      statistics: analysis.statistics,
+      correlationMatrix: analysis.correlationMatrix,
+      missingValues: analysis.missingValues,
+      chartConfigs: charts,
+    };
+  }),
 
   setLoading: (loading) => set({ isLoading: loading }),
 
@@ -72,6 +97,8 @@ const useDataStore = create((set, get) => ({
     recommendations: [],
     chatHistory: [],
     activeTab: 'overview',
+    forecastResult: null,
+    isForecasting: false,
     error: null,
   }),
 
