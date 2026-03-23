@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart3, Upload, Sparkles, MessageSquare, ArrowRight, Zap, Shield, TrendingUp } from 'lucide-react';
+import WelcomeModal from '../components/WelcomeModal';
 import DropZone from '../components/upload/DropZone';
 import './Pages.css';
 
@@ -9,6 +10,7 @@ export default function LandingPage() {
 
     return (
         <div className="landing-page">
+            <WelcomeModal />
             {/* Header */}
             <header className="landing-header">
                 <div className="landing-header-inner">
