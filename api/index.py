@@ -14,7 +14,6 @@ class ForecastingRequest(BaseModel):
 
 class SuggestionRequest(BaseModel):
     data: List[Dict[str, Any]]
-    data: List[Dict[str, Any]]
 
 @app.get("/api/health")
 def health_check():
@@ -115,7 +114,13 @@ def generate_forecast(req: ForecastingRequest):
         if req.model_type == "Prophet" and req.date_column and req.date_column in df.columns:
             try:
                 from prophet import Prophet
-                from sklearn.metrics import root_mean_squared_error, r2_score
+                try:
+                    from sklearn.metrics import root_mean_squared_error, r2_score
+                except ImportError:
+                    # Fallback for scikit-learn < 1.4
+                    from sklearn.metrics import mean_squared_error, r2_score
+                    def root_mean_squared_error(y_true, y_pred):
+                        return np.sqrt(mean_squared_error(y_true, y_pred))
                 
                 # Format for Prophet
                 prophet_df = df[[req.date_column, req.target_column]].rename(
@@ -141,8 +146,8 @@ def generate_forecast(req: ForecastingRequest):
                 r2 = r2_score(merged['y'], merged['yhat'])
                 rmse = root_mean_squared_error(merged['y'], merged['yhat'])
                 metrics = {
-                    "r2_score": round(float(r2), 4),
-                    "rmse": round(float(rmse), 4)
+                    "r2_score": float(np.round(r2, 4)),
+                    "rmse": float(np.round(rmse, 4))
                 }
                 
                 # Extract only future predictions
@@ -151,9 +156,9 @@ def generate_forecast(req: ForecastingRequest):
                     # Format output friendly for user (no "yhat", just predicted value)
                     forecast.append({
                         "period": row['ds'].strftime("%Y-%m-%d"),
-                        "predicted_value": round(float(row['yhat']), 2),
-                        "lower_bound": round(float(row['yhat_lower']), 2),
-                        "upper_bound": round(float(row['yhat_upper']), 2)
+                        "predicted_value": float(np.round(row['yhat'], 2)),
+                        "lower_bound": float(np.round(row['yhat_lower'], 2)),
+                        "upper_bound": float(np.round(row['yhat_upper'], 2))
                     })
                     
             except Exception as e:
@@ -163,7 +168,13 @@ def generate_forecast(req: ForecastingRequest):
         elif req.model_type == "LinearRegression" and req.feature_columns:
             try:
                 from sklearn.linear_model import LinearRegression
-                from sklearn.metrics import root_mean_squared_error, r2_score
+                try:
+                    from sklearn.metrics import root_mean_squared_error, r2_score
+                except ImportError:
+                    # Fallback for scikit-learn < 1.4
+                    from sklearn.metrics import mean_squared_error, r2_score
+                    def root_mean_squared_error(y_true, y_pred):
+                        return np.sqrt(mean_squared_error(y_true, y_pred))
                 
                 # Filter useful data
                 model_df = df[req.feature_columns + [req.target_column]].dropna()
@@ -178,8 +189,8 @@ def generate_forecast(req: ForecastingRequest):
                     r2 = r2_score(y, preds)
                     rmse = root_mean_squared_error(y, preds)
                     metrics = {
-                        "r2_score": round(float(r2), 4),
-                        "rmse": round(float(rmse), 4)
+                        "r2_score": float(np.round(r2, 4)),
+                        "rmse": float(np.round(rmse, 4))
                     }
             except Exception as e:
                 print("Failed ML:", str(e))
@@ -195,7 +206,7 @@ def generate_forecast(req: ForecastingRequest):
             for i in range(1, req.forecast_periods + 1):
                 forecast.append({
                     "period": f"T+{i}",
-                    "predicted_value": round(float(last_value + (trend * i)), 2)
+                    "predicted_value": float(np.round(last_value + (trend * i), 2))
                 })
             
         return {
